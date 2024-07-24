@@ -22,12 +22,30 @@ def overall_orderdata(url_origi):
     url = url_origi[0:url_origi.find('edit')]+'export?format=xlsx'
     df = pd.read_excel(url,sheet_name = 0)
     return df
+def calculate_order_price(row, price_dict):
+    total_price = 0
+    total_items = 0
+    
+    for item, price in price_dict.items():
+        if item != "delivery":
+            total_price += row[item] * price
+            total_items += row[item]
+
+    # Apply delivery fee rules
+    if row["Big set"] > 0 or row["Small set"] >= 4:
+        delivery_fee = 0
+    else:
+        delivery_fee = price_dict["delivery"]
+
+    total_price += delivery_fee
+
+    return total_price
 
 def detailed_orderdata(url_origi):
     url = url_origi[0:url_origi.find('edit')]+'export?format=xlsx'
     df = pd.read_excel(url,sheet_name = 1)
     df = df.dropna(subset=['Name'])
-    df["Total Price"] = df["Order"].apply(lambda x: price_dict[x] if x == "Big set" else price_dict[x] + price_dict["delivery"])
+    df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=price_dict)
     return df
 
 def clean_address(address):
@@ -38,7 +56,7 @@ def clean_address(address):
             return match.group(1).zfill(5)
     return "00000"
 
-def format_address(address, max_line_length=34):
+def format_address(address, max_line_length=38):
     address= str(address)
     words = address.split()
     formatted_address = ""
@@ -69,26 +87,34 @@ def format_tel_number(tel):
 
 def create_image(address, postal_code, name, tel,folder):
     # Create a blank white image
-    img = Image.open("ผู้รับ.png")
+    img = Image.open("chachacha_mail-04.png")
     
     # Initialize ImageDraw
     d = ImageDraw.Draw(img)
     # print(img.size)
     print(name)
-    line_spacing = 15
+    line_spacing = 33
     # Add text to the image
-    d.text((1750,850), f"{name}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 250), fill=(0, 0, 0))
-    d.text((1750,350), f"{format_tel_number(str(tel))}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 250), fill=(0, 0, 0))
+
+    d.text((550,158), f"{format_tel_number(str(tel))}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+    d.text((400,285), f"{name}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+    
     # d.text((800,1270), f"{format_address(address)}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 220), fill=(0, 0, 0))
-    y = 1290
+    y = 380
+    liner = 0
     for line in format_address(address).split('\n'):
-        d.text((800, y), line, font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 200), fill=(0, 0, 0))
-        y += 230 + line_spacing
-    d.text((2150,2440), f"{str(postal_code)[0]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 250), fill=(0, 0, 0))
-    d.text((2650,2440), f"{str(postal_code)[1]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 250), fill=(0, 0, 0))
-    d.text((3150,2440), f"{str(postal_code)[2]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 250), fill=(0, 0, 0))
-    d.text((3650,2440), f"{str(postal_code)[3]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 250), fill=(0, 0, 0))
-    d.text((4150,2440), f"{str(postal_code)[4]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 250), fill=(0, 0, 0))
+        if liner==0:
+            d.text((150, y), "      "+line, font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+            y += 50 + line_spacing
+        else:
+            d.text((150, y), line, font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+            y += 50 + line_spacing
+        liner+=1
+    d.text((420,710), f"{str(postal_code)[0]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+    d.text((510,710), f"{str(postal_code)[1]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+    d.text((600,710), f"{str(postal_code)[2]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+    d.text((690,710), f"{str(postal_code)[3]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+    d.text((780,710), f"{str(postal_code)[4]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
     
     # Save the image
     img.save(f"{folder}/{name}_address.png")
