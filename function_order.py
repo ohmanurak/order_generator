@@ -6,6 +6,7 @@ import re
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
+from datetime import datetime
 
 price_dict = {
     "Small set": 425,
@@ -41,11 +42,28 @@ def calculate_order_price(row, price_dict):
 
     return total_price
 
+def current_weeknum():
+    """
+    Calculate the ISO week number for the current date.
+    
+    Returns:
+    int: Week number of the year
+    """
+    # Get the current date
+    current_date = datetime.now()
+    
+    # Get the ISO calendar week number
+    week_number = current_date.isocalendar()[1]
+    
+    return week_number
+
+
 def detailed_orderdata(url_origi):
     url = url_origi[0:url_origi.find('edit')]+'export?format=xlsx'
     df = pd.read_excel(url,sheet_name = 1)
     df = df.dropna(subset=['Name'])
     df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=price_dict)
+    df = df[df['Weeknum'] == current_weeknum()] 
     return df
 
 def clean_address(address):
@@ -144,7 +162,6 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
     if not os.path.exists(temp_folder):
         os.makedirs(temp_folder)
 
-    # Loop through all image files and add each with an extra image
     for image_file in image_files:
         # Open the main image
         image_path = os.path.join(image_directory, image_file)
@@ -157,7 +174,7 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
             
             # Save the resized image to a temporary file with a unique name
             main_image_path = os.path.join(temp_folder, f"main_image_{count}.jpg")
-            img.save(main_image_path)
+            img.save(main_image_path, quality=99, subsampling=0)  # Save with high quality
 
         # Open and process the extra image
         with Image.open(extra_image_path) as extra_img:
@@ -169,14 +186,14 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
             
             # Save the resized extra image to a temporary file with a unique name
             extra_image_path_temp = os.path.join(temp_folder, f"extra_image_{count}.jpg")
-            extra_img.save(extra_image_path_temp)
+            extra_img.save(extra_image_path_temp, quality=95, subsampling=0)  # Save with high quality
 
         # Draw the main image and the extra image on the PDF
         c.drawImage(main_image_path, x, y, width=image_width, height=image_height)
         c.drawImage(extra_image_path_temp, x + image_width, y, width=image_width, height=image_height)
 
         # Update positions
-        count += 2
+        count += 1
         if count % 4 == 0:
             c.showPage()  # Add a new page after every 4 pairs of images (8 images)
             x = 0
