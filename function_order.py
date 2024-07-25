@@ -193,7 +193,7 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
         c.drawImage(extra_image_path_temp, x + image_width, y, width=image_width, height=image_height)
 
         # Update positions
-        count += 1
+        count += 2
         if count % 4 == 0:
             c.showPage()  # Add a new page after every 4 pairs of images (8 images)
             x = 0

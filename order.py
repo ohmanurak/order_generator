@@ -21,4 +21,4 @@ for index, row in detailed_df.iterrows():
 
 
 
-# function_order.create_pdf_from_images(folder, "sender.png",folder+"_temp", f'{folder}/Parcel_print.pdf')
+function_order.create_pdf_from_images(folder, "sender.png",folder+"_temp", f'{folder}/Parcel_print.pdf')
