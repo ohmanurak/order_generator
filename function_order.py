@@ -6,7 +6,7 @@ import re
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
-from datetime import datetime
+from datetime import datetime,timedelta
 
 price_dict = {
     "Small set": 425,
@@ -43,17 +43,14 @@ def calculate_order_price(row, price_dict):
     return total_price
 
 def current_weeknum():
-    """
-    Calculate the ISO week number for the current date.
-    
-    Returns:
-    int: Week number of the year
-    """
     # Get the current date
     current_date = datetime.now()
     
+    # Adjust the date to make Thursday the first day of the week
+    adjusted_date = current_date - timedelta(days=(current_date.weekday() - 3) % 7)
+    
     # Get the ISO calendar week number
-    week_number = current_date.isocalendar()[1]
+    week_number = adjusted_date.isocalendar()[1]
     
     return week_number
 
@@ -64,6 +61,7 @@ def detailed_orderdata(url_origi):
     df = df.dropna(subset=['Name'])
     df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=price_dict)
     df = df[df['Weeknum'] == current_weeknum()] 
+    df = df[df['pickup'] == False]
     return df
 
 def clean_address(address):
@@ -148,7 +146,7 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
     # Define page size and layout
     page_width, page_height = A4
     image_width = page_width / 2
-    image_height = page_height / 2
+    image_height = page_height / 4
 
     # Create a PDF canvas
     c = canvas.Canvas(output_pdf_path, pagesize=A4)
@@ -167,7 +165,7 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
         image_path = os.path.join(image_directory, image_file)
         with Image.open(image_path) as img:
             # Rotate the image 90 degrees clockwise
-            img = img.rotate(-90, expand=True)
+            # img = img.rotate(-90, expand=True)
             
             # Resize image to fit within the specified dimensions with high-quality resampling
             img = img.resize((int(image_width), int(image_height)), Image.LANCZOS)
@@ -179,7 +177,7 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
         # Open and process the extra image
         with Image.open(extra_image_path) as extra_img:
             # Rotate the extra image 90 degrees clockwise
-            extra_img = extra_img.rotate(-90, expand=True)
+            # extra_img = extra_img.rotate(-90, expand=True)
             
             # Resize the extra image to fit within the specified dimensions with high-quality resampling
             extra_img = extra_img.resize((int(image_width), int(image_height)), Image.LANCZOS)
@@ -189,20 +187,29 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
             extra_img.save(extra_image_path_temp, quality=95, subsampling=0)  # Save with high quality
 
         # Draw the main image and the extra image on the PDF
-        c.drawImage(main_image_path, x, y, width=image_width, height=image_height)
-        c.drawImage(extra_image_path_temp, x + image_width, y, width=image_width, height=image_height)
-
-        # Update positions
-        count += 2
+        c.drawImage(main_image_path, x, y- image_height, width=image_width, height=image_height)
+        c.drawImage(extra_image_path_temp, x , y, width=image_width, height=image_height)
+        count +=1
         if count % 4 == 0:
-            c.showPage()  # Add a new page after every 4 pairs of images (8 images)
+            c.showPage()
             x = 0
             y = page_height - image_height
         else:
-            x += 2 * image_width  # Move to the next pair of images
+            x+= image_width
             if count % 2 == 0:
                 x = 0
-                y -= image_height
+                y = y- 2*image_height
+        # Update positions
+        # count += 2
+        # if count % 8 == 0:
+        #     c.showPage()  # Add a new page after every 4 pairs of images (8 images)
+        #     x = 0
+        #     y = page_height - image_height
+        # else:
+        #     x +=  image_width  # Move to the next pair of images
+        #     if count % 4 == 0:
+        #         x = 0
+        #         y -= image_height
 
         # Remove temporary image files after use
         os.remove(main_image_path)
