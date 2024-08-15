@@ -47,7 +47,7 @@ def current_weeknum():
     current_date = datetime.now()
     
     # Adjust the date to make Thursday the first day of the week
-    adjusted_date = current_date - timedelta(days=(current_date.weekday() - 3) % 7)
+    adjusted_date = current_date - timedelta(days=(current_date.weekday() - 2) % 7)
     
     # Get the ISO calendar week number
     week_number = adjusted_date.isocalendar()[1]
@@ -55,9 +55,9 @@ def current_weeknum():
     return week_number
 
 
-def detailed_orderdata(url_origi):
+def detailed_orderdata(url_origi,sheetname):
     url = url_origi[0:url_origi.find('edit')]+'export?format=xlsx'
-    df = pd.read_excel(url,sheet_name = 1)
+    df = pd.read_excel(url,sheet_name = sheetname)
     df = df.dropna(subset=['Name'])
     df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=price_dict)
     df = df[df['Weeknum'] == current_weeknum()] 
@@ -149,7 +149,7 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
     image_height = page_height / 4
 
     # Create a PDF canvas
-    c = canvas.Canvas(output_pdf_path, pagesize=A4)
+    c = canvas.Canvas(output_pdf_path+"_"+str(current_weeknum())+".pdf", pagesize=A4)
 
     # Initialize counters
     x = 0
