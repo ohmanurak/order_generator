@@ -59,9 +59,10 @@ def detailed_orderdata(url_origi,sheetname):
     url = url_origi[0:url_origi.find('edit')]+'export?format=xlsx'
     df = pd.read_excel(url,sheet_name = sheetname)
     df = df.dropna(subset=['Name'])
-    df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=price_dict)
+    df["Total Price"] = df['total payment']
     df = df[df['Weeknum'] == current_weeknum()] 
     df = df[df['pickup'] == False]
+    df = df[df['Payment'] == True]
     return df
 
 def clean_address(address):
@@ -100,11 +101,50 @@ def format_tel_number(tel):
     formatted_tel = f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
     
     return formatted_tel
-
-def create_image(address, postal_code, name, tel,folder):
+def order(order_list):
+    text = ""
+    if int(order_list['Small set'])>0:
+        # print("Small set:",order_list['Small set'])
+        text += "Small set: "+str(order_list['Small set'])+"\n"
+    if int(order_list['Big set'])>0:
+        # print("Big set:",order_list['Big set'])
+        text += "Big set: "+str(order_list['Big set'])+"\n"
+    if int(order_list['1cha pint'])>0:
+        # print("1cha pint:",order_list['1cha pint'])
+        text += "1cha pint: "+str(order_list['1cha pint'])+"\n"
+    if int(order_list['2cha pint'])>0:
+        # print("2cha pint:",order_list['2cha pint'])
+        text += "2cha pint: "+str(order_list['2cha pint'])+"\n"
+    if int(order_list['3cha pint'])>0:
+        # print("3cha pint:",order_list['3cha pint'])
+        text += "3cha pint: "+str(order_list['3cha pint'])+"\n"
+    if int(order_list['4cha pint'])>0:
+        # print("4cha pint:",order_list['4cha pint'])
+        text += "4cha pint "+str(order_list['4cha pint'])+"\n"
+    if int(order_list['5cha pint'])>0:
+        # print("5cha pint:",order_list['5cha pint'])
+        text += "5cha pint: "+str(order_list['5cha pint'])+"\n"
+    if int(order_list['1cha 4oz'])>0:
+        # print("1cha 4oz:",order_list['1cha 4oz'])
+        text += "1cha 4oz: "+str(order_list['1cha 4oz'])+"\n"
+    if int(order_list['2cha 4oz'])>0:
+        # print("2cha 4oz:",order_list['2cha 4oz'])
+        text += "2cha 4oz: "+str(order_list['2cha 4oz'])+"\n"
+    if int(order_list['3cha 4oz'])>0:
+        # print("3cha 4oz:",order_list['3cha 4oz'])
+        text += "3cha 4oz: "+str(order_list['3cha 4oz'])+"\n"
+    if int(order_list['4cha 4oz'])>0:
+        # print("4cha 4oz:",order_list['4cha 4oz'])
+        text += "4cha 4oz: "+str(order_list['4cha 4oz'])+"\n"
+    if int(order_list['5cha 4oz'])>0:
+        # print("5cha 4oz:",order_list['5cha 4oz'])
+        text += "5cha 4oz: "+str(order_list['5cha 4oz'])+"\n"
+    return text
+def create_image(address, postal_code, name, tel,folder,row):
     # Create a blank white image
-    img = Image.open("chachacha_mail-04.png")
-    
+    img = Image.open("chachacha_mail-05.png")
+    text = order(row)
+    print(text)
     # Initialize ImageDraw
     d = ImageDraw.Draw(img)
     # print(img.size)
@@ -131,7 +171,7 @@ def create_image(address, postal_code, name, tel,folder):
     d.text((600,710), f"{str(postal_code)[2]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
     d.text((690,710), f"{str(postal_code)[3]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
     d.text((780,710), f"{str(postal_code)[4]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
-    
+    d.text((400,900), f"{text}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
     # Save the image
     img.save(f"{folder}/{name}_address.png")
 
@@ -147,6 +187,7 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
     page_width, page_height = A4
     image_width = page_width / 2
     image_height = page_height / 4
+    extra_height = page_height / 4
 
     # Create a PDF canvas
     c = canvas.Canvas(output_pdf_path+"_"+str(current_weeknum())+".pdf", pagesize=A4)
@@ -187,8 +228,9 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
             extra_img.save(extra_image_path_temp, quality=95, subsampling=0)  # Save with high quality
 
         # Draw the main image and the extra image on the PDF
-        c.drawImage(main_image_path, x, y- image_height, width=image_width, height=image_height)
         c.drawImage(extra_image_path_temp, x , y, width=image_width, height=image_height)
+        c.drawImage(main_image_path, x, y- image_height, width=image_width, height=extra_height)
+        
         count +=1
         if count % 4 == 0:
             c.showPage()

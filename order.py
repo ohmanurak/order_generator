@@ -17,7 +17,7 @@ if not os.path.isdir(folder):
         os.mkdir(folder)
 
 for index, row in detailed_df.iterrows():
-    function_order.create_image(row['Address'], row['postal_code'], row['Name'],row['Tel'],folder)
+    function_order.create_image(row['Address'], row['postal_code'], row['Name'],row['Tel'],folder,row)
 
 
 
