@@ -127,40 +127,40 @@ def order(order_list):
     text = ""
     if int(order_list['Small set'])>0:
         # print("Small set:",order_list['Small set'])
-        text += "Small set: "+str(order_list['Small set'])+"\n"
+        text += "Small set: "+str(int(order_list['Small set']))+"\n"
     if int(order_list['Big set'])>0:
         # print("Big set:",order_list['Big set'])
-        text += "Big set: "+str(order_list['Big set'])+"\n"
+        text += "Big set: "+str(int(order_list['Big set']))+"\n"
     if int(order_list['1cha pint'])>0:
         # print("1cha pint:",order_list['1cha pint'])
-        text += "1cha pint: "+str(order_list['1cha pint'])+"\n"
+        text += "1cha pint: "+str(int(order_list['1cha pint']))+"\n"
     if int(order_list['2cha pint'])>0:
         # print("2cha pint:",order_list['2cha pint'])
-        text += "2cha pint: "+str(order_list['2cha pint'])+"\n"
+        text += "2cha pint: "+str(int(order_list['2cha pint']))+"\n"
     if int(order_list['3cha pint'])>0:
         # print("3cha pint:",order_list['3cha pint'])
-        text += "3cha pint: "+str(order_list['3cha pint'])+"\n"
+        text += "3cha pint: "+str(int(order_list['3cha pint']))+"\n"
     if int(order_list['4cha pint'])>0:
         # print("4cha pint:",order_list['4cha pint'])
-        text += "4cha pint "+str(order_list['4cha pint'])+"\n"
+        text += "4cha pint: "+str(int(order_list['4cha pint']))+"\n"
     if int(order_list['5cha pint'])>0:
         # print("5cha pint:",order_list['5cha pint'])
-        text += "5cha pint: "+str(order_list['5cha pint'])+"\n"
+        text += "5cha pint: "+str(int(order_list['5cha pint']))+"\n"
     if int(order_list['1cha 4oz'])>0:
         # print("1cha 4oz:",order_list['1cha 4oz'])
-        text += "1cha 4oz: "+str(order_list['1cha 4oz'])+"\n"
+        text += "1cha 4oz: "+str(int(order_list['1cha 4oz']))+"\n"
     if int(order_list['2cha 4oz'])>0:
         # print("2cha 4oz:",order_list['2cha 4oz'])
-        text += "2cha 4oz: "+str(order_list['2cha 4oz'])+"\n"
+        text += "2cha 4oz: "+str(int(order_list['2cha 4oz']))+"\n"
     if int(order_list['3cha 4oz'])>0:
         # print("3cha 4oz:",order_list['3cha 4oz'])
-        text += "3cha 4oz: "+str(order_list['3cha 4oz'])+"\n"
+        text += "3cha 4oz: "+str(int(order_list['3cha 4oz']))+"\n"
     if int(order_list['4cha 4oz'])>0:
         # print("4cha 4oz:",order_list['4cha 4oz'])
-        text += "4cha 4oz: "+str(order_list['4cha 4oz'])+"\n"
+        text += "4cha 4oz: "+str(int(order_list['4cha 4oz']))+"\n"
     if int(order_list['5cha 4oz'])>0:
         # print("5cha 4oz:",order_list['5cha 4oz'])
-        text += "5cha 4oz: "+str(order_list['5cha 4oz'])+"\n"
+        text += "5cha 4oz: "+str(int(order_list['5cha 4oz']))+"\n"
     return text
 def create_image(address, postal_code, name, tel,folder,row):
     # Create a blank white image
