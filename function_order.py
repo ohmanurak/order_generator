@@ -2,29 +2,14 @@ import pandas as pd
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import os
-import re
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
-from datetime import datetime,timedelta
-import requests
-import certifi
 from io import BytesIO
-import constants
+import constants.constants as constants
+import helpers.helpers as helpers
 
-price_dict = {
-    "Small set": 425,
-    "Big set": 1236,
-    "1cha pint": 309,
-    "2cha pint": 309,
-    "3cha pint": 309,
-    "4cha pint": 309,
-    "5cha pint": 469,
-    "delivery": 150
-}
-
-def overall_orderdata(url_origi):
-    url = url_origi[0:url_origi.find('edit')]+'export?format=xlsx'
+def overall_orderdata(url):
     df = pd.read_excel(url,sheet_name = 0)
     return df
 def calculate_order_price(row, price_dict):
@@ -46,83 +31,25 @@ def calculate_order_price(row, price_dict):
 
     return total_price
 
-def current_weeknum():
-    # Get the current date
-    current_date = datetime.now()
-    
-    # Adjust the date to make Thursday the first day of the week
-    adjusted_date = current_date - timedelta(days=(current_date.weekday() - 2) % 7)
-    
-    # Get the ISO calendar week number
-    week_number = adjusted_date.isocalendar()[1]
-    
-    return week_number
 
-def detailed_orderdata(url_origi):
-     # Modify the URL to point to the xlsx export
-    url = url_origi.split('edit')[0] + 'export?format=xlsx'
+def detailed_orderdata(url):
+    # Load the content into a pandas DataFrame
+    df = pd.read_excel(BytesIO(url.content), sheet_name=1)
     
-    try:
-        # Fetch the Excel file content over HTTPS using requests
-        response = requests.get(url, verify=certifi.where())
-        response.raise_for_status()  # Raise an exception for HTTP errors (like 404 or 500)
-        
-        # Load the content into a pandas DataFrame
-        df = pd.read_excel(BytesIO(response.content), sheet_name=1)
-        
-        # Drop rows where 'Name' is missing
-        df = df.dropna(subset=['Name'])
-        
-        # Apply your order price calculation
-        df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=price_dict)
-        
-        # Filter by the current week and pickup status
-        df = df[df['Weeknum'] == current_weeknum()] 
-        df = df[df['pickup'] == False]
-        
-        return df
-    except requests.exceptions.SSLError as e:
-        print(f"SSL error: {e}")
-    except requests.exceptions.RequestException as e:
-        print(f"HTTP error: {e}")
+    # Drop rows where 'Name' is missing
+    df = df.dropna(subset=['Name'])
+    
+    # Apply your order price calculation
+    df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=constants.PRICE_DICT)
+    
+    # Filter by the current week and pickup status
+    df = df[df['Weeknum'] == helpers.current_weeknum()] 
+    df = df[df['pickup'] == False]
+    
+    return df
 
 
-def clean_address(address):
-    if isinstance(address, str):
-        # Find the last 5 characters that are digits
-        match = re.search(r'(\d{1,5})\D*$', address)
-        if match:
-            return match.group(1).zfill(5)
-    return "00000"
 
-def format_address(address, max_line_length=38):
-    address= str(address)
-    words = address.split()
-    formatted_address = ""
-    current_line = ""
-
-    for word in words:
-        if len(current_line) + len(word) + (1 if current_line else 0) <= max_line_length:
-            current_line += (" " if current_line else "") + word
-        else:
-            formatted_address += current_line + "\n"
-            current_line = word
-
-    formatted_address += current_line  # Add the last line
-    return formatted_address
-
-def format_tel_number(tel):
-    # Extract all digits from the tel number
-    digits = re.sub(r'\D', '', tel)
-    
-    # Ensure we have exactly 10 digits
-    if len(digits) != 10:
-        return "Invalid Number"
-    
-    # Format the digits into the desired pattern
-    formatted_tel = f"{digits[:3]}-{digits[3:6]}-{digits[6:]}"
-    
-    return formatted_tel
 def order(order_list):
     text = ""
     if int(order_list['Small set'])>0:
@@ -174,13 +101,13 @@ def create_image(address, postal_code, name, tel,folder,row):
     line_spacing = 33
     # Add text to the image
 
-    d.text((550,158), f"{format_tel_number(str(tel))}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    d.text((550,158), f"{helpers.format_tel_number(str(tel))}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
     d.text((400,285), f"{name}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
     
     # d.text((800,1270), f"{format_address(address)}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 220), fill=(0, 0, 0))
     y = 380
     liner = 0
-    for line in format_address(address).split('\n'):
+    for line in helpers.format_address(address).split('\n'):
         if liner==0:
             d.text((150, y), "      "+line, font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
             y += 50 + line_spacing
@@ -212,7 +139,7 @@ def create_pdf_from_images(image_directory, extra_image_path, temp_folder, outpu
     extra_height = page_height / 4
 
     # Create a PDF canvas
-    c = canvas.Canvas(output_pdf_path+"_"+str(current_weeknum())+".pdf", pagesize=A4)
+    c = canvas.Canvas(output_pdf_path+"_"+str(helpers.current_weeknum())+".pdf", pagesize=A4)
 
     # Initialize counters
     x = 0

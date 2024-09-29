@@ -1,1 +1,0 @@
-EKKAMAI_FONT_PATH = "fonts/EkkamaiNew-Regular.ttf"
