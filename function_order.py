@@ -7,6 +7,10 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import inch
 from datetime import datetime,timedelta
+import requests
+import certifi
+from io import BytesIO
+import constants
 
 price_dict = {
     "Small set": 425,
@@ -54,16 +58,34 @@ def current_weeknum():
     
     return week_number
 
+def detailed_orderdata(url_origi):
+     # Modify the URL to point to the xlsx export
+    url = url_origi.split('edit')[0] + 'export?format=xlsx'
+    
+    try:
+        # Fetch the Excel file content over HTTPS using requests
+        response = requests.get(url, verify=certifi.where())
+        response.raise_for_status()  # Raise an exception for HTTP errors (like 404 or 500)
+        
+        # Load the content into a pandas DataFrame
+        df = pd.read_excel(BytesIO(response.content), sheet_name=1)
+        
+        # Drop rows where 'Name' is missing
+        df = df.dropna(subset=['Name'])
+        
+        # Apply your order price calculation
+        df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=price_dict)
+        
+        # Filter by the current week and pickup status
+        df = df[df['Weeknum'] == current_weeknum()] 
+        df = df[df['pickup'] == False]
+        
+        return df
+    except requests.exceptions.SSLError as e:
+        print(f"SSL error: {e}")
+    except requests.exceptions.RequestException as e:
+        print(f"HTTP error: {e}")
 
-def detailed_orderdata(url_origi,sheetname):
-    url = url_origi[0:url_origi.find('edit')]+'export?format=xlsx'
-    df = pd.read_excel(url,sheet_name = sheetname)
-    df = df.dropna(subset=['Name'])
-    df["Total Price"] = df['total payment']
-    df = df[df['Weeknum'] == current_weeknum()] 
-    df = df[df['pickup'] == False]
-    df = df[df['Payment'] == True]
-    return df
 
 def clean_address(address):
     if isinstance(address, str):
@@ -142,7 +164,7 @@ def order(order_list):
     return text
 def create_image(address, postal_code, name, tel,folder,row):
     # Create a blank white image
-    img = Image.open("chachacha_mail-05.png")
+    img = Image.open("misc/chachacha_mail-05.png")
     text = order(row)
     print(text)
     # Initialize ImageDraw
@@ -152,26 +174,26 @@ def create_image(address, postal_code, name, tel,folder,row):
     line_spacing = 33
     # Add text to the image
 
-    d.text((550,158), f"{format_tel_number(str(tel))}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
-    d.text((400,285), f"{name}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+    d.text((550,158), f"{format_tel_number(str(tel))}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    d.text((400,285), f"{name}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
     
-    # d.text((800,1270), f"{format_address(address)}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 220), fill=(0, 0, 0))
+    # d.text((800,1270), f"{format_address(address)}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 220), fill=(0, 0, 0))
     y = 380
     liner = 0
     for line in format_address(address).split('\n'):
         if liner==0:
-            d.text((150, y), "      "+line, font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+            d.text((150, y), "      "+line, font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
             y += 50 + line_spacing
         else:
-            d.text((150, y), line, font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+            d.text((150, y), line, font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
             y += 50 + line_spacing
         liner+=1
-    d.text((420,710), f"{str(postal_code)[0]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
-    d.text((510,710), f"{str(postal_code)[1]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
-    d.text((600,710), f"{str(postal_code)[2]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
-    d.text((690,710), f"{str(postal_code)[3]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
-    d.text((780,710), f"{str(postal_code)[4]}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
-    d.text((400,900), f"{text}", font=ImageFont.truetype('EkkamaiNew-Regular.ttf', 50), fill=(0, 0, 0))
+    d.text((420,710), f"{str(postal_code)[0]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    d.text((510,710), f"{str(postal_code)[1]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    d.text((600,710), f"{str(postal_code)[2]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    d.text((690,710), f"{str(postal_code)[3]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    d.text((780,710), f"{str(postal_code)[4]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    d.text((400,900), f"{text}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
     # Save the image
     img.save(f"{folder}/{name}_address.png")
 
