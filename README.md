@@ -21,7 +21,7 @@ pip install virtualenv
 pip install pyinstaller
 ```
 ## Setup
-1. create a virtual environment for project dependencies(requirements.txt) so that pyinstaller can to include it to path
+1. Create a virtual environment for project dependencies(requirements.txt) so that pyinstaller can to include it to path
 ```bash
 mkdir 3chaGenerator
 cd 3chaGenerator
