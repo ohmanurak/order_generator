@@ -2,6 +2,7 @@ import re
 from datetime import datetime,timedelta
 import requests
 import certifi
+import sys, os
 
 # formatters
 def clean_address(address):
@@ -68,3 +69,11 @@ def verify_url(url_origi):
     except requests.exceptions.RequestException as e:
             print(f"HTTP error: {e}")
 
+
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)

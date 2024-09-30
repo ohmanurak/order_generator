@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import os
 from reportlab.lib.pagesizes import A4
@@ -89,9 +88,9 @@ def order(order_list):
         # print("5cha 4oz:",order_list['5cha 4oz'])
         text += "5cha 4oz: "+str(int(order_list['5cha 4oz']))+"\n"
     return text
-def create_image(address, postal_code, name, tel,folder,row):
+def create_image(address, postal_code, name, tel,folder,row,app_path):
     # Create a blank white image
-    img = Image.open("misc/chachacha_mail-05.png")
+    img = Image.open(f"{app_path}/misc/chachacha_mail-05.png")
     text = order(row)
     print(text)
     # Initialize ImageDraw
@@ -100,29 +99,29 @@ def create_image(address, postal_code, name, tel,folder,row):
     print(name)
     line_spacing = 33
     # Add text to the image
-
-    d.text((550,158), f"{helpers.format_tel_number(str(tel))}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
-    d.text((400,285), f"{name}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    print(helpers.resource_path(constants.EKKAMAI_FONT_PATH))
+    d.text((550,158), f"{helpers.format_tel_number(str(tel))}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
+    d.text((400,285), f"{name}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
     
     # d.text((800,1270), f"{format_address(address)}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 220), fill=(0, 0, 0))
     y = 380
     liner = 0
     for line in helpers.format_address(address).split('\n'):
         if liner==0:
-            d.text((150, y), "      "+line, font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+            d.text((150, y), "      "+line, font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
             y += 50 + line_spacing
         else:
-            d.text((150, y), line, font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+            d.text((150, y), line, font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
             y += 50 + line_spacing
         liner+=1
-    d.text((420,710), f"{str(postal_code)[0]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
-    d.text((510,710), f"{str(postal_code)[1]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
-    d.text((600,710), f"{str(postal_code)[2]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
-    d.text((690,710), f"{str(postal_code)[3]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
-    d.text((780,710), f"{str(postal_code)[4]}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
-    d.text((400,900), f"{text}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 50), fill=(0, 0, 0))
+    d.text((420,710), f"{str(postal_code)[0]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
+    d.text((510,710), f"{str(postal_code)[1]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
+    d.text((600,710), f"{str(postal_code)[2]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
+    d.text((690,710), f"{str(postal_code)[3]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
+    d.text((780,710), f"{str(postal_code)[4]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
+    d.text((400,900), f"{text}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
     # Save the image
-    img.save(f"{folder}/{name}_address.png")
+    img.save(f"../../{folder}/{name}_address.png")
 
 
 def create_pdf_from_images(image_directory, extra_image_path, temp_folder, output_pdf_path):
