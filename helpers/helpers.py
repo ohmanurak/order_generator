@@ -3,6 +3,7 @@ from datetime import datetime,timedelta
 import requests
 import certifi
 import sys, os
+import logging
 
 # formatters
 def clean_address(address):
@@ -47,11 +48,13 @@ def current_weeknum():
     # Get the current date
     current_date = datetime.now()
     
-    # Adjust the date to make Thursday the first day of the week
-    adjusted_date = current_date - timedelta(days=(current_date.weekday() - 2) % 7)
+    # Adjust the date to make Tuesday the first day of the week
+    adjusted_date = current_date - timedelta(days=(current_date.weekday() + 6) % 7)
     
     # Get the ISO calendar week number
     week_number = adjusted_date.isocalendar()[1]
+
+    logging.info(week_number)
     
     return week_number
 # connection tester

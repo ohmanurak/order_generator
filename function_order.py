@@ -63,6 +63,8 @@ def order(order_list):
             text += "Small set: " + str(int(order_list['Small set'])) + "\n"
         if int(order_list.get('Big set', 0)) > 0:
             text += "Big set: " + str(int(order_list['Big set'])) + "\n"
+        if int(order_list.get('Mini set', 0)) > 0:
+            text += "Mini set: " + str(int(order_list['Mini set'])) + "\n"
         if int(order_list.get('1cha pint', 0)) > 0:
             text += "1cha pint: " + str(int(order_list['1cha pint'])) + "\n"
         if int(order_list.get('2cha pint', 0)) > 0:
