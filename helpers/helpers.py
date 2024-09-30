@@ -65,11 +65,15 @@ def verify_url(url_origi):
         
         return response
     except requests.exceptions.SSLError as e:
-            print(f"SSL error: {e}")
+        raise ValueError(f"SSL error: {e}") from e
     except requests.exceptions.RequestException as e:
-            print(f"HTTP error: {e}")
+        raise ValueError(f"HTTP error: {e}") from e
+    
 
 
+
+
+    
 def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS

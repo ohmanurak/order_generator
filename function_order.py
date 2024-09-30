@@ -7,10 +7,8 @@ from reportlab.lib.units import inch
 from io import BytesIO
 import constants.constants as constants
 import helpers.helpers as helpers
+import logging
 
-def overall_orderdata(url):
-    df = pd.read_excel(url,sheet_name = 0)
-    return df
 def calculate_order_price(row, price_dict):
     total_price = 0
     total_items = 0
@@ -33,7 +31,15 @@ def calculate_order_price(row, price_dict):
 
 def detailed_orderdata(url):
     # Load the content into a pandas DataFrame
-    df = pd.read_excel(BytesIO(url.content), sheet_name=1)
+    try:
+        # Try to load the content into a pandas DataFrame
+        df = pd.read_excel(BytesIO(url.content), sheet_name=1)
+    except ValueError as e:
+        logging.error(f"Error loading Excel file: {e}")
+        return None
+    except Exception as e:
+        logging.error(f"Unexpected error: {e}")
+        return None
     
     # Drop rows where 'Name' is missing
     df = df.dropna(subset=['Name'])
@@ -42,8 +48,8 @@ def detailed_orderdata(url):
     df["Total Price"] = df.apply(calculate_order_price, axis=1, price_dict=constants.PRICE_DICT)
     
     # Filter by the current week and pickup status
-    df = df[df['Weeknum'] == helpers.current_weeknum()] 
-    df = df[df['pickup'] == False]
+    df = df[(df['Weeknum'] == helpers.current_weeknum()) & (df['pickup'] == False)]
+
     
     return df
 
@@ -51,163 +57,182 @@ def detailed_orderdata(url):
 
 def order(order_list):
     text = ""
-    if int(order_list['Small set'])>0:
-        # print("Small set:",order_list['Small set'])
-        text += "Small set: "+str(int(order_list['Small set']))+"\n"
-    if int(order_list['Big set'])>0:
-        # print("Big set:",order_list['Big set'])
-        text += "Big set: "+str(int(order_list['Big set']))+"\n"
-    if int(order_list['1cha pint'])>0:
-        # print("1cha pint:",order_list['1cha pint'])
-        text += "1cha pint: "+str(int(order_list['1cha pint']))+"\n"
-    if int(order_list['2cha pint'])>0:
-        # print("2cha pint:",order_list['2cha pint'])
-        text += "2cha pint: "+str(int(order_list['2cha pint']))+"\n"
-    if int(order_list['3cha pint'])>0:
-        # print("3cha pint:",order_list['3cha pint'])
-        text += "3cha pint: "+str(int(order_list['3cha pint']))+"\n"
-    if int(order_list['4cha pint'])>0:
-        # print("4cha pint:",order_list['4cha pint'])
-        text += "4cha pint: "+str(int(order_list['4cha pint']))+"\n"
-    if int(order_list['5cha pint'])>0:
-        # print("5cha pint:",order_list['5cha pint'])
-        text += "5cha pint: "+str(int(order_list['5cha pint']))+"\n"
-    if int(order_list['1cha 4oz'])>0:
-        # print("1cha 4oz:",order_list['1cha 4oz'])
-        text += "1cha 4oz: "+str(int(order_list['1cha 4oz']))+"\n"
-    if int(order_list['2cha 4oz'])>0:
-        # print("2cha 4oz:",order_list['2cha 4oz'])
-        text += "2cha 4oz: "+str(int(order_list['2cha 4oz']))+"\n"
-    if int(order_list['3cha 4oz'])>0:
-        # print("3cha 4oz:",order_list['3cha 4oz'])
-        text += "3cha 4oz: "+str(int(order_list['3cha 4oz']))+"\n"
-    if int(order_list['4cha 4oz'])>0:
-        # print("4cha 4oz:",order_list['4cha 4oz'])
-        text += "4cha 4oz: "+str(int(order_list['4cha 4oz']))+"\n"
-    if int(order_list['5cha 4oz'])>0:
-        # print("5cha 4oz:",order_list['5cha 4oz'])
-        text += "5cha 4oz: "+str(int(order_list['5cha 4oz']))+"\n"
+    
+    try:
+        if int(order_list.get('Small set', 0)) > 0:
+            text += "Small set: " + str(int(order_list['Small set'])) + "\n"
+        if int(order_list.get('Big set', 0)) > 0:
+            text += "Big set: " + str(int(order_list['Big set'])) + "\n"
+        if int(order_list.get('1cha pint', 0)) > 0:
+            text += "1cha pint: " + str(int(order_list['1cha pint'])) + "\n"
+        if int(order_list.get('2cha pint', 0)) > 0:
+            text += "2cha pint: " + str(int(order_list['2cha pint'])) + "\n"
+        if int(order_list.get('3cha pint', 0)) > 0:
+            text += "3cha pint: " + str(int(order_list['3cha pint'])) + "\n"
+        if int(order_list.get('4cha pint', 0)) > 0:
+            text += "4cha pint: " + str(int(order_list['4cha pint'])) + "\n"
+        if int(order_list.get('5cha pint', 0)) > 0:
+            text += "5cha pint: " + str(int(order_list['5cha pint'])) + "\n"
+        if int(order_list.get('1cha 4oz', 0)) > 0:
+            text += "1cha 4oz: " + str(int(order_list['1cha 4oz'])) + "\n"
+        if int(order_list.get('2cha 4oz', 0)) > 0:
+            text += "2cha 4oz: " + str(int(order_list['2cha 4oz'])) + "\n"
+        if int(order_list.get('3cha 4oz', 0)) > 0:
+            text += "3cha 4oz: " + str(int(order_list['3cha 4oz'])) + "\n"
+        if int(order_list.get('4cha 4oz', 0)) > 0:
+            text += "4cha 4oz: " + str(int(order_list['4cha 4oz'])) + "\n"
+        if int(order_list.get('5cha 4oz', 0)) > 0:
+            text += "5cha 4oz: " + str(int(order_list['5cha 4oz'])) + "\n"
+
+    except KeyError as e:
+        logging.error(f"Key error: {e} not found in order_list")
+    
     return text
-def create_image(address, postal_code, name, tel,folder,row,app_path):
-    # Create a blank white image
-    img = Image.open(f"{app_path}/misc/chachacha_mail-05.png")
+
+from PIL import Image, ImageDraw, ImageFont
+
+def create_image(address, postal_code, name, tel, folder, row, app_path):
+    try:
+        # Load the base image
+        img = Image.open(f"{app_path}/misc/chachacha_mail-05.png")
+    except Exception as e:
+        logging.error(f"Error opening image: {e}")
+        return
+
     text = order(row)
-    print(text)
+    print(f"{text} \n {name} \n")
+ 
+
+
     # Initialize ImageDraw
     d = ImageDraw.Draw(img)
-    # print(img.size)
-    print(name)
-    line_spacing = 33
-    # Add text to the image
-    print(helpers.resource_path(constants.EKKAMAI_FONT_PATH))
-    d.text((550,158), f"{helpers.format_tel_number(str(tel))}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-    d.text((400,285), f"{name}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
     
-    # d.text((800,1270), f"{format_address(address)}", font=ImageFont.truetype(constants.EKKAMAI_FONT_PATH, 220), fill=(0, 0, 0))
-    y = 380
-    liner = 0
-    for line in helpers.format_address(address).split('\n'):
-        if liner==0:
-            d.text((150, y), "      "+line, font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-            y += 50 + line_spacing
-        else:
-            d.text((150, y), line, font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-            y += 50 + line_spacing
-        liner+=1
-    d.text((420,710), f"{str(postal_code)[0]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-    d.text((510,710), f"{str(postal_code)[1]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-    d.text((600,710), f"{str(postal_code)[2]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-    d.text((690,710), f"{str(postal_code)[3]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-    d.text((780,710), f"{str(postal_code)[4]}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-    d.text((400,900), f"{text}", font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), 50), fill=(0, 0, 0))
-    # Save the image
-    img.save(f"../../{folder}/{name}_address.png")
+    # Define constants for text positions and font size
+    FONT_SIZE = 50
+    LINE_SPACING = 33
+    Y_START = 380
+
+    try:
+        # Add contact details to the image
+        d.text((550, 158), helpers.format_tel_number(str(tel)), 
+                font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+        d.text((400, 285), name, 
+                font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+
+        # Add address to the image
+        y = Y_START
+        for liner, line in enumerate(helpers.format_address(address).split('\n')):
+            x_position = (230, y) if liner == 0 else (150, y)
+            d.text(x_position, line, 
+                    font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+            y += 50 + LINE_SPACING
+
+        # Add postal code
+        for i, digit in enumerate(str(postal_code)):
+            d.text((420 + i * 90, 710), digit, 
+                    font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+
+        # Add order details
+        d.text((400, 900), text, 
+                font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+
+        # Save the image
+        img.save(f"{folder}/{name}_address.png")
+    except Exception as e:
+        logging.error(f"Error while creating the image: {e}")
+
+
+
+
 
 
 def create_pdf_from_images(image_directory, extra_image_path, temp_folder, output_pdf_path):
-    # Get all image files from the directory
-    image_files = [f for f in os.listdir(image_directory) if f.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif'))]
+    # Set up logging
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     
-    # Sort the files to maintain a consistent order
-    image_files.sort()
+    # Get all image files from the directory
+    try:
+        image_files = [f for f in os.listdir(image_directory) if f.lower().endswith(('png', 'jpg', 'jpeg', 'bmp', 'gif'))]
+        image_files.sort()
+    except Exception as e:
+        logging.error(f"Error reading image directory '{image_directory}': {e}")
+        return
 
     # Define page size and layout
-    page_width, page_height = A4
-    image_width = page_width / 2
-    image_height = page_height / 4
-    extra_height = page_height / 4
+    page_width, page_height = A4  # A4 size in points (1 point = 1/72 inch)
+    image_width = page_width / 2   # Width of each image (2 images per row)
+    image_height = page_height / 4  # Height of each image (4 rows)
 
     # Create a PDF canvas
-    c = canvas.Canvas(output_pdf_path+"_"+str(helpers.current_weeknum())+".pdf", pagesize=A4)
+    output_pdf_name = f"{output_pdf_path}_{str(helpers.current_weeknum())}.pdf"
+    try:
+        c = canvas.Canvas(output_pdf_name, pagesize=A4)
+    except Exception as e:
+        logging.error(f"Error creating PDF canvas: {e}")
+        return
+
+    # Ensure the temporary folder exists
+    try:
+        if not os.path.exists(temp_folder):
+            os.makedirs(temp_folder)
+    except Exception as e:
+        logging.error(f"Error creating temporary folder '{temp_folder}': {e}")
+        return
 
     # Initialize counters
     x = 0
     y = page_height - image_height
     count = 0
 
-    # Ensure the temporary folder exists
-    if not os.path.exists(temp_folder):
-        os.makedirs(temp_folder)
-
     for image_file in image_files:
-        # Open the main image
-        image_path = os.path.join(image_directory, image_file)
-        with Image.open(image_path) as img:
-            # Rotate the image 90 degrees clockwise
-            # img = img.rotate(-90, expand=True)
-            
-            # Resize image to fit within the specified dimensions with high-quality resampling
-            img = img.resize((int(image_width), int(image_height)), Image.LANCZOS)
-            
-            # Save the resized image to a temporary file with a unique name
-            main_image_path = os.path.join(temp_folder, f"main_image_{count}.jpg")
-            img.save(main_image_path, quality=99, subsampling=0)  # Save with high quality
+        try:
+            # Open the main image
+            image_path = os.path.join(image_directory, image_file)
+            with Image.open(image_path) as img:
+                img = img.resize((int(image_width), int(image_height)), Image.LANCZOS)
+                main_image_path = os.path.join(temp_folder, f"main_image_{count}.jpg")
+                img.save(main_image_path, quality=99, subsampling=0)
 
-        # Open and process the extra image
-        with Image.open(extra_image_path) as extra_img:
-            # Rotate the extra image 90 degrees clockwise
-            # extra_img = extra_img.rotate(-90, expand=True)
-            
-            # Resize the extra image to fit within the specified dimensions with high-quality resampling
-            extra_img = extra_img.resize((int(image_width), int(image_height)), Image.LANCZOS)
-            
-            # Save the resized extra image to a temporary file with a unique name
-            extra_image_path_temp = os.path.join(temp_folder, f"extra_image_{count}.jpg")
-            extra_img.save(extra_image_path_temp, quality=95, subsampling=0)  # Save with high quality
+            # Open and process the extra image
+            with Image.open(extra_image_path) as extra_img:
+                extra_img = extra_img.resize((int(image_width), int(image_height)), Image.LANCZOS)
+                extra_image_path_temp = os.path.join(temp_folder, f"extra_image_{count}.jpg")
+                extra_img.save(extra_image_path_temp, quality=95, subsampling=0)
 
-        # Draw the main image and the extra image on the PDF
-        c.drawImage(extra_image_path_temp, x , y, width=image_width, height=image_height)
-        c.drawImage(main_image_path, x, y- image_height, width=image_width, height=extra_height)
-        
-        count +=1
-        if count % 4 == 0:
-            c.showPage()
-            x = 0
-            y = page_height - image_height
-        else:
-            x+= image_width
-            if count % 2 == 0:
+            # Draw the main image and the extra image on the PDF
+            # Position the images
+            c.drawImage(extra_image_path_temp, x, y, width=image_width, height=image_height)
+            c.drawImage(main_image_path, x, y - image_height, width=image_width, height=image_height)
+
+            count += 1
+            if count % 4 == 0:
+                c.showPage()
                 x = 0
-                y = y- 2*image_height
-        # Update positions
-        # count += 2
-        # if count % 8 == 0:
-        #     c.showPage()  # Add a new page after every 4 pairs of images (8 images)
-        #     x = 0
-        #     y = page_height - image_height
-        # else:
-        #     x +=  image_width  # Move to the next pair of images
-        #     if count % 4 == 0:
-        #         x = 0
-        #         y -= image_height
+                y = page_height - image_height
+            else:
+                x += image_width
+                if count % 2 == 0:
+                    x = 0
+                    y -= 2 * image_height
 
-        # Remove temporary image files after use
-        os.remove(main_image_path)
-        os.remove(extra_image_path_temp)
+            # Remove temporary image files after use
+            os.remove(main_image_path)
+            os.remove(extra_image_path_temp)
+
+        except Exception as e:
+            logging.error(f"Error processing image '{image_file}': {e}")
+            continue  # Skip to the next image
 
     # Save the PDF
-    c.save()
+    try:
+        c.save()
+        logging.info(f"PDF saved successfully at: {output_pdf_name}")
+    except Exception as e:
+        logging.error(f"Error saving PDF: {e}")
 
     # Remove the temporary folder after all images are processed
-    if os.path.isdir(temp_folder):
-        os.rmdir(temp_folder)
+    try:
+        if os.path.isdir(temp_folder):
+            os.rmdir(temp_folder)
+    except Exception as e:
+        logging.error(f"Error removing temporary folder '{temp_folder}': {e}")
