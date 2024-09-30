@@ -53,8 +53,6 @@ def current_weeknum():
     
     # Get the ISO calendar week number
     week_number = adjusted_date.isocalendar()[1]
-
-    logging.info(week_number)
     
     return week_number
 # connection tester
@@ -77,10 +75,3 @@ def verify_url(url_origi):
 
 
     
-def resource_path(relative_path):
-    try:
-        base_path = sys._MEIPASS
-    except Exception:
-        base_path = os.path.abspath(".")
-
-    return os.path.join(base_path, relative_path)

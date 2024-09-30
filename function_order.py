@@ -117,26 +117,26 @@ def create_image(address, postal_code, name, tel, folder, row, app_path):
     try:
         # Add contact details to the image
         d.text((550, 158), helpers.format_tel_number(str(tel)), 
-                font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+                font=ImageFont.truetype(os.path.join(app_path, constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
         d.text((400, 285), name, 
-                font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+                font=ImageFont.truetype(os.path.join(app_path, constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
 
         # Add address to the image
         y = Y_START
         for liner, line in enumerate(helpers.format_address(address).split('\n')):
             x_position = (230, y) if liner == 0 else (150, y)
             d.text(x_position, line, 
-                    font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+                    font=ImageFont.truetype(os.path.join(app_path, constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
             y += 50 + LINE_SPACING
 
         # Add postal code
         for i, digit in enumerate(str(postal_code)):
             d.text((420 + i * 90, 710), digit, 
-                    font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+                    font=ImageFont.truetype(os.path.join(app_path, constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
 
         # Add order details
         d.text((400, 900), text, 
-                font=ImageFont.truetype(helpers.resource_path(constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
+                font=ImageFont.truetype(os.path.join(app_path, constants.EKKAMAI_FONT_PATH), FONT_SIZE), fill=(0, 0, 0))
 
         # Save the image
         img.save(f"{folder}/{name}_address.png")
