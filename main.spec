@@ -2,7 +2,8 @@
 
 added_files = [
          ( './fonts', 'fonts' ),
-         ( './misc', 'misc' )
+         ( './misc', 'misc' ),
+         ( '.env', '.env' )
          ]
 
 a = Analysis(
