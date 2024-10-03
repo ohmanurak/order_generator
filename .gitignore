@@ -1,1 +1,9 @@
 Week*/
+.env
+3chaGenerator
+__pycache__
+.DS_Store
+._*
+*.pyc
+dist
+build
